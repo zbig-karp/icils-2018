@@ -1,4 +1,3 @@
 # icils-2018
-R code used in an analysis of data from ICILS 2018
 
-This respository contains R scripts necessary to reproduce analyses reported in the paper &#8220;Non-cognitive skills and social gaps in digital skills: A cross-national analysis&#8221;
+This repository contains R scripts necessary to reproduce the results of analyses reported in the paper "Non-cognitive skills and social gaps in digital skills: A cross-national analysis". The analyses use data from the International Computer and Information Literacy Study (ICILS), carried out by International Association for the Evaluation of Educational Achievement (IEA). So far, two cycles of the survey have been completed: in 2013 and 2018. The present analysis uses data from the latter cycle. The ICILS data are *publicly available* on [IEA's website](https://www.iea.nl/studies/iea/icils).
