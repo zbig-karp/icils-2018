@@ -66,9 +66,16 @@ des <- svrepdesign(data = students1, weights = ~totwgts, repweights = "srwgt[0-9
 
 t4 <- svycor(~timedrop + perfdrop + nrr, design = des, sig.stats = TRUE)
 
+# A matrix of correlation coefficients
 t4$cors
+
+# A matrix of standard errors of the coefficients
 t4$std.err
+
+# A matrix of the values of t-statistics 
 t4$t.values
+
+# A matrix of the p-values for the t-tests
 t4$p.values
 
 t5 <- t4$cors
@@ -596,7 +603,7 @@ ftest.0 <- ftest.0 %>%
 
 ftest.0 %>%
   kable(format = "latex", 
-        booktabs = T,
+        booktabs = TRUE,
         caption = "Results of the $F$-tests for models with parental occupation as the indicator of socioeconomic status", 
         label = "tab:occ-ftest",
         digits = c(NA, 1, 0, 1, 3), 
@@ -732,7 +739,7 @@ texreg(l = mod.sum.1$regtabs, omit.coef = "(Intercept)",
                              "Computer experience: [1, 3)", "Computer experience: [3, 5)",
                              "Computer experience: [5, 7)", "Computer experience: 7+", 
                              "HISEI", "Time drop",  "Performance drop", "Nonresponse"),
-       booktabs = TRUE, dcolumn = TRUE, file = "cil-sfe-occ.tex", use.packages = FALSE, 
+       booktabs = TRUE, dcolumn = TRUE, file = "cil-sfe-hisei.tex", use.packages = FALSE, 
        caption = "Results from the fixed-effects linear models for the CIL test scores", 
        caption.above = TRUE, label = "tab:cil-hisei")
 
@@ -857,10 +864,10 @@ dev.off()
 # Running a series of F-tests to see if adding the proxies increases the explanatory power relative to the baseline model
 # This is not included in the manuscript, but is available upon request (see footnote 18)
 
-mod.01 <- map2(.x = mod.0, .y = mod.1, .f = anova, method = "Wald", test = "F")
-mod.02 <- map2(.x = mod.0, .y = mod.2, .f = anova, method = "Wald", test = "F")
-mod.03 <- map2(.x = mod.0, .y = mod.3, .f = anova, method = "Wald", test = "F")
-mod.04 <- map2(.x = mod.0, .y = mod.4, .f = anova, method = "Wald", test = "F")
+mod.01 <- map2(.x = mod.20, .y = mod.21, .f = anova, method = "Wald", test = "F")
+mod.02 <- map2(.x = mod.20, .y = mod.22, .f = anova, method = "Wald", test = "F")
+mod.03 <- map2(.x = mod.20, .y = mod.23, .f = anova, method = "Wald", test = "F")
+mod.04 <- map2(.x = mod.20, .y = mod.24, .f = anova, method = "Wald", test = "F")
 
 mod.01.f <- mod.01 %>%
   map_dbl(~.$Ftest)
@@ -951,452 +958,46 @@ mod.20.vif <- list(mod.20.vif, mod.21.vif, mod.22.vif, mod.23.vif, mod.24.vif) %
 write_delim(x = mod.20.vif, file = "icils-2018-hisei-vif.csv", delim = ";")
 rm(list = ls()[!ls() %in% c("students1", "des", "tidy.melded", "glance.melded")])
 
-# Models with NISB as a proxy for socioeconomic background
+######################################## STEP 6 ########################################
+############### Models with NISB as a proxy for socioeconomic background ##############
+############################ (see Table 7 in the Appendix) #############################
+
+# STEP 6.1: REGRESSION MODELS
+
 # Baseline model: no proxies for non-cognitive skills
 
-mod.10 <- withPV(
+mod.30 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
   data = des,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe, design = des)))
 
 # Extending the baseline model: adding time drop
 
-mod.11 <- withPV(
+mod.31 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
   data = des,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + timedrop_sfe, design = des)))
 
 # Extending the baseline model: adding performance drop
 
-mod.12 <- withPV(
+mod.32 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
   data = des,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + perfdrop_sfe, design = des)))
 
 # Extending the baseline model: adding response rate
 
-mod.13 <- withPV(
+mod.33 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
   data = des,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + nrr_sfe, design = des)))
 
 # Extending the baseline model: adding all three proxies
 
-mod.14 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + timedrop_sfe + perfdrop_sfe + nrr_sfe, design = des)))
-
-# A list with the models
-
-mod.sum.1 <- tibble(
-  models = list(mod.10, mod.11, mod.12, mod.13, mod.14),
-  coefs = map(models, tidy.melded),
-  gofs = map(models, glance.melded))
-
-mod.sum.1 <- mod.sum.1 %>%
-  mutate(regtabs = map2(.x = coefs, .y = gofs, .f = ~createTexreg(
-    coef.names = as.character(.x$term),
-    coef = .x$estimate,
-    se = .x$std.error,
-    pvalues = .x$p.value,
-    gof.names = c("$N$", "$R^2$", "Adj. $R^2$"),
-    gof = c(.y$nobs, .y$r.squared, .y$adj.rsq),
-    gof.decimal = c(F, T, T)
-  )))
-
-screenreg(l = mod.sum.1$regtabs, omit.coef = "(Intercept)",
-          custom.coef.names = c("Gender", "Age", "Migrant", "Computers at home", 
-                                "Computer experience: [1, 3)", "Computer experience: [3, 5)",
-                                "Computer experience: [5, 7)", "Computer experience: 7+", "NISB",
-                                "Time drop",  "Performance drop", "Nonresponse"))
-
-texreg(l = mod.sum.1$regtabs, omit.coef = "(Intercept)",
-       custom.coef.names = c("Gender", "Age", "Migrant", "Computers at home", 
-                             "Computer experience: [1, 3)", "Computer experience: [3, 5)",
-                             "Computer experience: [5, 7)", "Computer experience: 7+", "NISB",
-                             "Time drop",  "Performance drop", "Nonresponse"),
-       booktabs = T, dcolumn = T, file = "cil-dfe-nisb.tex", use.packages = F, caption = "Results from the fixed-effects linear models for the CIL test scores", caption.above = T, label = "tab:cil-nisb")
-
-
-# Running a series of F-tests to see if adding the proxies increases the explanatory power relative to the baseline model
-
-mod.101 <- map2(.x = mod.10, .y = mod.11, .f = anova, method = "Wald", test = "F")
-mod.102 <- map2(.x = mod.10, .y = mod.12, .f = anova, method = "Wald", test = "F")
-mod.103 <- map2(.x = mod.10, .y = mod.13, .f = anova, method = "Wald", test = "F")
-mod.104 <- map2(.x = mod.10, .y = mod.14, .f = anova, method = "Wald", test = "F")
-
-mod.101.f <- mod.101 %>%
-  map_dbl(~.$Ftest)
-mod.102.f <- mod.102 %>%
-  map_dbl(~.$Ftest)
-mod.103.f <- mod.103 %>%
-  map_dbl(~.$Ftest)
-mod.104.f <- mod.104 %>%
-  map_dbl(~.$Ftest)
-
-ftest.1 <- rbind(
-  micombine.F(Fvalues = mod.101.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.102.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.103.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.104.f, df1 = 3)[1:4]
-) %>%
-  as_tibble()
-
-ftest.1 <- ftest.1 %>%
-  mutate(Comparison = c("Model 2 vs Model 1", "Model 3 vs Model 1", "Model 4 vs Model 1", "Model 5 vs Model 1")) %>%
-  select(5, 1, 3, 4, 2)
-
-ftest.1 %>%
-  kable(format = "latex", 
-        booktabs = T,
-        caption = "Results of the $F$-tests", 
-        label = "tab:hisei-ftest",
-        digits = c(NA, 1, 0, 1, 3), 
-        col.names = c("Comparison", "Test statistic", "df1", "df2", "$p$ value")) %>%
-  kable_styling() %>%
-  cat(., file = "nisb-ftests.tex")
-
-# Calculating variance inflation factors
-
-mod.10.vif <- mod.10 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.10.vif <- mod.10.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.11.vif <- mod.11 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.11.vif <- mod.11.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.12.vif <- mod.12 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.12.vif <- mod.12.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.13.vif <- mod.13 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.13.vif <- mod.13.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.14.vif <- mod.14 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.14.vif <- mod.14.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.10.vif <- list(mod.10.vif, mod.11.vif, mod.12.vif, mod.13.vif, mod.14.vif) %>%
-  bind_rows(.id = "Model")
-
-write_delim(x = mod.10.vif, file = "icils-2018-nisb-vif.csv", delim = ";")
-
-# Models with parental education as a proxy for socioeconomic background
-# Baseline model: no proxies for non-cognitive skills
-
-mod.20 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe, design = des)))
-
-# Extending the baseline model: adding time drop
-
-mod.21 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe, design = des)))
-
-# Extending the baseline model: adding performance drop
-
-mod.22 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + perfdrop_sfe, design = des)))
-
-# Extending the baseline model: adding response rate
-
-mod.23 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + nrr_sfe, design = des)))
-
-# Extending the baseline model: adding all three proxies
-
-mod.24 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe + perfdrop_sfe + nrr_sfe, design = des)))
-
-# A list with the models
-
-mod.sum.2 <- tibble(
-  models = list(mod.20, mod.21, mod.22, mod.23, mod.24),
-  coefs = map(models, tidy.melded),
-  gofs = map(models, glance.melded))
-
-mod.sum.2 <- mod.sum.2 %>%
-  mutate(regtabs = map2(.x = coefs, .y = gofs, .f = ~createTexreg(
-    coef.names = as.character(.x$term),
-    coef = .x$estimate,
-    se = .x$std.error,
-    pvalues = .x$p.value,
-    gof.names = c("$N$", "$R^2$", "Adj. $R^2$"),
-    gof = c(.y$nobs, .y$r.squared, .y$adj.rsq),
-    gof.decimal = c(F, T, T)
-  )))
-
-screenreg(l = mod.sum.2$regtabs, omit.coef = "(Intercept)",
-          custom.coef.names = c("Gender", "Age", "Migrant", "Computers at home", 
-                                "Computer experience: [1, 3)", "Computer experience: [3, 5)",
-                                "Computer experience: [5, 7)", "Computer experience: 7+",
-                                "Parental education", "Time drop",  "Performance drop",
-                                "Nonresponse"))
-
-texreg(l = mod.sum.2$regtabs, omit.coef = "(Intercept)",
-       custom.coef.names = c("Gender", "Age", "Migrant", "Computers at home", 
-                             "Computer experience: [1, 3)", "Computer experience: [3, 5)",
-                             "Computer experience: [5, 7)", "Computer experience: 7+", 
-                             "Parental education", "Time drop",  "Performance drop", 
-                             "Nonresponse"),
-       booktabs = T, dcolumn = T, file = "cil-dfe-degree.tex", use.packages = F, caption = "Results from the fixed-effects linear models for the CIL test scores", caption.above = T, label = "tab:cil-degree")
-
-# Testing the hypotheses
-# Model 1 vs Model 2
-# PV1
-
-m201.1 <- withReplicates(design = des,
-                       theta = function(w = totwgts, data = students1) {
-                         m1 <- lm(pv1cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe, data = data, weights = w)
-                         m2 <- lm(pv1cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe, data = data, weights = w)
-                         return(coef(m1)[2:10] - coef(m2)[2:10])
-                       })
-
-# PV2
-m201.2 <- withReplicates(design = des,
-                         theta = function(w = totwgts, data = students1) {
-                           m1 <- lm(pv2cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe, data = data, weights = w)
-                           m2 <- lm(pv2cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe, data = data, weights = w)
-                           return(coef(m1)[2:10] - coef(m2)[2:10])
-                         })
-# PV3
-m201.3 <- withReplicates(design = des,
-                         theta = function(w = totwgts, data = students1) {
-                           m1 <- lm(pv3cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe, data = data, weights = w)
-                           m2 <- lm(pv3cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe, data = data, weights = w)
-                           return(coef(m1)[2:10] - coef(m2)[2:10])
-                         })
-
-# PV4
-m201.4 <- withReplicates(design = des,
-                         theta = function(w = totwgts, data = students1) {
-                           m1 <- lm(pv4cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe, data = data, weights = w)
-                           m2 <- lm(pv4cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe, data = data, weights = w)
-                           return(coef(m1)[2:10] - coef(m2)[2:10])
-                         })
-
-# PV5
-m201.5 <- withReplicates(design = des,
-                         theta = function(w = totwgts, data = students1) {
-                           m1 <- lm(pv5cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe, data = data, weights = w)
-                           m2 <- lm(pv5cil_sfe ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe, data = data, weights = w)
-                           return(coef(m1)[2:10] - coef(m2)[2:10])
-                         })
-
-mod.201 <- list(m201.1, m201.2, m201.3, m201.4, m201.5) %>%
-  map(as.data.frame) %>%
-  bind_rows(.id = "pv") %>%
-  mutate(term = rownames(.),
-         term = str_remove_all(string = term, pattern = "\\.+|[0-9]+|s\\_|\\_+|sfe")) %>%
-  filter(term %in% c("gender", "degree", "immbgr"))
-
-mod.201 %>%
-  as_tibble() %>%
-  group_by(term) %>%
-  summarise(d = mean(theta),
-            s = sqrt(mean(SE^2) + 1.2 * sum((theta - mean(theta))^2))/4)
-  
-
-
-# Running a series of F-tests to see if adding the proxies increases the explanatory power relative to the baseline model
-
-mod.201 <- map2(.x = mod.20, .y = mod.21, .f = anova, method = "Wald", test = "F")
-mod.202 <- map2(.x = mod.20, .y = mod.22, .f = anova, method = "Wald", test = "F")
-mod.203 <- map2(.x = mod.20, .y = mod.23, .f = anova, method = "Wald", test = "F")
-mod.204 <- map2(.x = mod.20, .y = mod.24, .f = anova, method = "Wald", test = "F")
-
-mod.201.f <- mod.201 %>%
-  map_dbl(~.$Ftest)
-mod.202.f <- mod.202 %>%
-  map_dbl(~.$Ftest)
-mod.203.f <- mod.203 %>%
-  map_dbl(~.$Ftest)
-mod.204.f <- mod.204 %>%
-  map_dbl(~.$Ftest)
-
-ftest.2 <- rbind(
-  micombine.F(Fvalues = mod.201.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.202.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.203.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.204.f, df1 = 3)[1:4]
-) %>%
-  as_tibble()
-
-ftest.2 <- ftest.2 %>%
-  mutate(Comparison = c("Model 2 vs Model 1", "Model 3 vs Model 1", "Model 4 vs Model 1", "Model 5 vs Model 1")) %>%
-  select(5, 1, 3, 4, 2)
-
-ftest.2 %>%
-  kable(format = "latex", 
-        booktabs = T,
-        caption = "Results of the $F$-tests", 
-        label = "tab:hisei-ftest",
-        digits = c(NA, 1, 0, 1, 3), 
-        col.names = c("Comparison", "Test statistic", "df1", "df2", "$p$ value")) %>%
-  kable_styling() %>%
-  cat(., file = "degree-ftests.tex")
-
-# Plotting the coefficients for gender, SES, and migrant status
-
-fig_1 <- list(
-  summary(MIcombine(mod.20)), 
-  summary(MIcombine(mod.21)), 
-  summary(MIcombine(mod.22)), 
-  summary(MIcombine(mod.23)), 
-  summary(MIcombine(mod.24))) %>%
-  bind_rows(.id = "Model")
-
-fig_1 <- tibble(term = rownames(fig_1), as_tibble(fig_1)) %>%
-  filter(str_detect(string = term, pattern = "gender|s_degree|s_imm")) %>%
-  mutate(term = str_remove(string = term, pattern = "\\_sfe[.0-9]+"),
-         term = factor(term, levels = c("gender", "s_degree", "s_immbgr"), 
-                       labels = c("Gender", "Parental education", "Migrant status")))
-
-tikz(file = "icils-2018-hyp-test-edu.tex", width = 6, height = 3, standAlone = F)
-fig_1 %>%
-  ggplot(mapping = aes(x = Model, y = results)) + 
-  geom_point() + 
-  geom_errorbar(mapping = aes(ymin = `(lower`, ymax = `upper)`), width = 0.1) + 
-  facet_wrap(~term) + 
-  labs(y = "Estimate") + 
-  theme_bw() + 
-  theme(axis.title = element_text(hjust = 1))
-dev.off()
-
-# Calculating VIF
-
-mod.20.vif <- mod.20 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.20.vif <- mod.20.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.21.vif <- mod.21 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.21.vif <- mod.21.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.22.vif <- mod.22 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.22.vif <- mod.22.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.23.vif <- mod.23 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.23.vif <- mod.23.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.24.vif <- mod.24 %>%
-  map(vif) %>%
-  map(enframe, name = "Variable") %>%
-  bind_rows(.id = "PV")
-
-mod.24.vif <- mod.24.vif %>%
-  pivot_wider(values_from = value, names_from = PV) %>%
-  rename_with(.cols = matches("[1-5]"), .fn = ~paste("PV", .)) %>%
-  mutate(Variable = str_remove_all(string = Variable, pattern = "s\\_|\\_sfe"))
-
-mod.20.vif <- list(mod.20.vif, mod.21.vif, mod.22.vif, mod.23.vif, mod.24.vif) %>%
-  bind_rows(.id = "Model")
-
-write_delim(x = mod.20.vif, file = "vif-values-cil-degree.csv", delim = ';')
-
-# Models with parental occupation as a proxy for socioeconomic background
-# Baseline model: no proxies for non-cognitive skills
-
-mod.30 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + high_sfe, design = des)))
-
-# Extending the baseline model: adding time drop
-
-mod.31 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + high_sfe + timedrop_sfe, design = des)))
-
-# Extending the baseline model: adding performance drop
-
-mod.32 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + high_sfe + perfdrop_sfe, design = des)))
-
-# Extending the baseline model: adding response rate
-
-mod.33 <- withPV(
-  mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + high_sfe + nrr_sfe, design = des)))
-
-# Extending the baseline model: adding all three proxies
-
 mod.34 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
   data = des,
-  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + high_sfe + timedrop_sfe + perfdrop_sfe + nrr_sfe, design = des)))
+  action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + timedrop_sfe + perfdrop_sfe + nrr_sfe, design = des)))
 
 # A list with the models
 
@@ -1417,60 +1018,178 @@ mod.sum.3 <- mod.sum.3 %>%
   )))
 
 screenreg(l = mod.sum.3$regtabs, omit.coef = "(Intercept)",
-          custom.coef.names = c("Gender", "Age", "Migrant", "Computers at home", 
+          custom.coef.names = c("Gender", "Age", "Migrant", "Computers at home",
                                 "Computer experience: [1, 3)", "Computer experience: [3, 5)",
-                                "Computer experience: [5, 7)", "Computer experience: 7+",
-                                "Parental occupation", "Time drop",  "Performance drop",
-                                "Nonresponse"))
+                                "Computer experience: [5, 7)", "Computer experience: 7+", 
+                                "NISB", "Time drop", "Performance drop", "Nonresponse"))
 
 texreg(l = mod.sum.3$regtabs, omit.coef = "(Intercept)",
        custom.coef.names = c("Gender", "Age", "Migrant", "Computers at home", 
                              "Computer experience: [1, 3)", "Computer experience: [3, 5)",
                              "Computer experience: [5, 7)", "Computer experience: 7+", 
-                             "Parental occupation", "Time drop",  "Performance drop", 
-                             "Nonresponse"),
-       booktabs = T, dcolumn = T, file = "cil-dfe-occ.tex", use.packages = F, caption = "Results from the fixed-effects linear models for the CIL test scores", caption.above = T, label = "tab:cil-occ")
+                             "NISB", "Time drop",  "Performance drop", "Nonresponse"),
+       booktabs = TRUE, dcolumn = TRUE, file = "cil-sfe-occ.tex", use.packages = FALSE, 
+       caption = "Results from the fixed-effects linear models for the CIL test scores", 
+       caption.above = TRUE, label = "tab:cil-nisb")
 
+# STEP 6.2: Testing the hypotheses
+# A comparison of Models 1 and 2 in Table 7
+
+mod.1.2 <- withPV(
+  mapping = cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe,
+  data = des,
+  action = quote(
+    withReplicates(des,
+                   function(w = totwgts, data = students1) {
+                     m1 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe,
+                              data = data, weights = w)
+                     m2 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + timedrop_sfe,
+                              data = data, weights = w)
+                     return(coef(m1)[c(2, 4, 10)] - coef(m2)[c(2, 4, 10)])
+                   })
+  ))
+
+mod.1.2 <- mod.1.2 %>%
+  map(as.data.frame) %>%
+  map(~mutate(.data = ., term = rownames(.))) %>%
+  bind_rows(.id = "pv") %>%
+  as_tibble() %>%
+  mutate(Comparison = "1 vs 2")
+
+# A comparison of Models 1 and 3 in Table 7
+
+mod.1.3 <- withPV(
+  mapping = cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe,
+  data = des,
+  action = quote(
+    withReplicates(des,
+                   function(w = totwgts, data = students1) {
+                     m1 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe,
+                              data = data, weights = w)
+                     m2 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + perfdrop_sfe,
+                              data = data, weights = w)
+                     return(coef(m1)[c(2, 4, 10)] - coef(m2)[c(2, 4, 10)])
+                   })
+  ))
+
+mod.1.3 <- mod.1.3 %>%
+  map(as.data.frame) %>%
+  map(~mutate(.data = ., term = rownames(.))) %>%
+  bind_rows(.id = "pv") %>%
+  as_tibble() %>%
+  mutate(Comparison = "1 vs 3")
+
+# A comparison of Models 1 and 4 in Table 7
+
+mod.1.4 <- withPV(
+  mapping = cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe,
+  data = des,
+  action = quote(
+    withReplicates(des,
+                   function(w = totwgts, data = students1) {
+                     m1 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe,
+                              data = data, weights = w)
+                     m2 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + nrr_sfe,
+                              data = data, weights = w)
+                     return(coef(m1)[c(2, 4, 10)] - coef(m2)[c(2, 4, 10)])
+                   })
+  ))
+
+mod.1.4 <- mod.1.4 %>%
+  map(as.data.frame) %>%
+  map(~mutate(.data = ., term = rownames(.))) %>%
+  bind_rows(.id = "pv") %>%
+  as_tibble() %>%
+  mutate(Comparison = "1 vs 4")
+
+# A comparison of Models 1 and 5 in Table 7
+
+mod.1.5 <- withPV(
+  mapping = cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe,
+  data = des,
+  action = quote(
+    withReplicates(des,
+                   function(w = totwgts, data = students1) {
+                     m1 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe,
+                              data = data, weights = w)
+                     m2 <- lm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_nisb_sfe + timedrop_sfe + perfdrop_sfe + nrr_sfe, data = data, weights = w)
+                     return(coef(m1)[c(2, 4, 10)] - coef(m2)[c(2, 4, 10)])
+                   })
+  ))
+
+mod.1.5 <- mod.1.5 %>%
+  map(as.data.frame) %>%
+  map(~mutate(.data = ., term = rownames(.))) %>%
+  bind_rows(.id = "pv") %>%
+  as_tibble() %>%
+  mutate(Comparison = "1 vs 5")
+
+t6 <- list(mod.1.2, mod.1.3, mod.1.4, mod.1.5) %>%
+  bind_rows() %>%
+  group_by(term, Comparison) %>%
+  summarise(m = mean(theta),
+            s = sqrt(mean(SE^2) + 1.2 * sum((theta - mean(theta))^2)/4),
+            .groups = "drop")
+
+t6 <- t6 %>%
+  mutate(lower = m + qnorm(0.025) * s,
+         upper = m + qnorm(0.975) * s,
+         term = str_remove_all(string = term, pattern = "s\\_|\\_sfe"),
+         term = factor(term, levels = c("gender", "nisb", "immbgr"), 
+                       labels = c("Gender", "NISB",
+                                  "Immigrant background")))
+
+tikz(file = "model-comparison-nisb.tex", width = 6, height = 3)
+t6 %>%
+  ggplot(mapping = aes(x = Comparison, y = m)) + 
+  geom_ref_line(h = 0, colour = "#bdbdbd", size = 0.5) +
+  geom_errorbar(mapping = aes(ymin = lower, ymax = upper), width = 0.1) + 
+  geom_point() + 
+  facet_wrap(~term) + 
+  theme_bw() + 
+  labs(x = "Model comparison", y = "Estimated difference between coefficients")
+dev.off()
 
 # Running a series of F-tests to see if adding the proxies increases the explanatory power relative to the baseline model
+# This is not included in the manuscript, but is available upon request (see footnote 18)
 
-mod.301 <- map2(.x = mod.30, .y = mod.31, .f = anova, method = "Wald", test = "F")
-mod.302 <- map2(.x = mod.30, .y = mod.32, .f = anova, method = "Wald", test = "F")
-mod.303 <- map2(.x = mod.30, .y = mod.33, .f = anova, method = "Wald", test = "F")
-mod.304 <- map2(.x = mod.30, .y = mod.34, .f = anova, method = "Wald", test = "F")
+mod.01 <- map2(.x = mod.0, .y = mod.1, .f = anova, method = "Wald", test = "F")
+mod.02 <- map2(.x = mod.0, .y = mod.2, .f = anova, method = "Wald", test = "F")
+mod.03 <- map2(.x = mod.0, .y = mod.3, .f = anova, method = "Wald", test = "F")
+mod.04 <- map2(.x = mod.0, .y = mod.4, .f = anova, method = "Wald", test = "F")
 
-mod.301.f <- mod.301 %>%
+mod.01.f <- mod.01 %>%
   map_dbl(~.$Ftest)
-mod.302.f <- mod.302 %>%
+mod.02.f <- mod.02 %>%
   map_dbl(~.$Ftest)
-mod.303.f <- mod.303 %>%
+mod.03.f <- mod.03 %>%
   map_dbl(~.$Ftest)
-mod.304.f <- mod.304 %>%
+mod.04.f <- mod.04 %>%
   map_dbl(~.$Ftest)
 
-ftest.3 <- rbind(
-  micombine.F(Fvalues = mod.301.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.302.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.303.f, df1 = 1)[1:4],
-  micombine.F(Fvalues = mod.304.f, df1 = 3)[1:4]
+ftest.0 <- rbind(
+  micombine.F(Fvalues = mod.01.f, df1 = 1)[1:4],
+  micombine.F(Fvalues = mod.02.f, df1 = 1)[1:4],
+  micombine.F(Fvalues = mod.03.f, df1 = 1)[1:4],
+  micombine.F(Fvalues = mod.04.f, df1 = 3)[1:4]
 ) %>%
   as_tibble()
 
-ftest.3 <- ftest.3 %>%
+ftest.0 <- ftest.0 %>%
   mutate(Comparison = c("Model 2 vs Model 1", "Model 3 vs Model 1", "Model 4 vs Model 1", "Model 5 vs Model 1")) %>%
   select(5, 1, 3, 4, 2)
 
-ftest.3 %>%
+ftest.0 %>%
   kable(format = "latex", 
-        booktabs = T,
-        caption = "Results of the $F$-tests", 
-        label = "tab:hisei-ftest",
+        booktabs = TRUE,
+        caption = "Results of the $F$-tests for models with NISB as the indicator of socioeconomic status", 
+        label = "tab:nisb-ftest",
         digits = c(NA, 1, 0, 1, 3), 
         col.names = c("Comparison", "Test statistic", "df1", "df2", "$p$ value")) %>%
   kable_styling() %>%
-  cat(., file = "occ-ftests.tex")
+  cat(., file = "nisb-ftests.tex")
 
-# Calculating VIF
+# Calculating variance inflation factors
 
 mod.30.vif <- mod.30 %>%
   map(vif) %>%
@@ -1525,34 +1244,8 @@ mod.34.vif <- mod.34.vif %>%
 mod.30.vif <- list(mod.30.vif, mod.31.vif, mod.32.vif, mod.33.vif, mod.34.vif) %>%
   bind_rows(.id = "Model")
 
-# Plotting the coefficients for gender, SES, and migrant status
-
-fig_2 <- list(
-  summary(MIcombine(mod.30)), 
-  summary(MIcombine(mod.31)), 
-  summary(MIcombine(mod.32)), 
-  summary(MIcombine(mod.33)), 
-  summary(MIcombine(mod.34))) %>%
-  bind_rows(.id = "Model")
-
-fig_2 <- tibble(term = rownames(fig_2), as_tibble(fig_2)) %>%
-  filter(str_detect(string = term, pattern = "gender|high|s_imm")) %>%
-  mutate(term = str_remove(string = term, pattern = "\\_sfe[.0-9]+"),
-         term = factor(term, levels = c("gender", "high", "s_immbgr"), 
-                       labels = c("Gender", "Parental occupation", "Migrant status")))
-
-tikz(file = "icils-2018-hyp-test-occ.tex", width = 6, height = 3, standAlone = F)
-fig_2 %>%
-  ggplot(mapping = aes(x = Model, y = results)) + 
-  geom_point() + 
-  geom_errorbar(mapping = aes(ymin = `(lower`, ymax = `upper)`), width = 0.1) + 
-  facet_wrap(~term) + 
-  labs(y = "Estimate") + 
-  theme_bw() + 
-  theme(axis.title = element_text(hjust = 1))
-dev.off()
-
-ggsave(filename = "icils-2018-hyp-test-occ.jpeg", dpi = 540, width = 6, height = 3)
+write_delim(x = mod.30.vif, file = "icils-2018-nisb-vif.csv", delim = ";")
+rm(list = ls()[!ls() %in% c("students1", "des", "tidy.melded", "glance.melded")])
 
 ########## MODELS WITH INTERACTIONS
 
