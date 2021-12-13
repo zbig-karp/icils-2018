@@ -209,7 +209,10 @@ nrr <- students %>%
   select(cntry, idschool, idstud, is2g03:is2g30) %>%
   pivot_longer(cols = starts_with("is2"), names_to = "item", values_to = "response")
 
+# There is a total of 1,245 respondents who didn't fill in the questionnaire. Put in another way, the background questionnaire was not administered to these students. They should therefore be excluded from the analysis. 
+
 nrr <- nrr %>%
+  filter(response != 8) %>%
   group_by(cntry, idschool, idstud) %>%
   summarise(nrr = 1 - mean(response == 9),
             .groups = "drop")

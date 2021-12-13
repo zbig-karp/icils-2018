@@ -97,35 +97,35 @@ rm(t4, t5)
 
 mod.0 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
+  data = des, subset = na_ind == 0,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe, design = des)))
 
 # Extending the baseline model: adding time drop
 
 mod.1 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
+  data = des, subset = na_ind == 0,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe, design = des)))
 
 # Extending the baseline model: adding performance drop
 
 mod.2 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
+  data = des, subset = na_ind == 0,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + perfdrop_sfe, design = des)))
 
 # Extending the baseline model: adding response rate
 
 mod.3 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
+  data = des, subset = na_ind == 0,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + nrr_sfe, design = des)))
 
 # Extending the baseline model: adding all three proxies
 
 mod.4 <- withPV(
   mapping = list(cil ~ pv1cil_sfe + pv2cil_sfe + pv3cil_sfe + pv4cil_sfe + pv5cil_sfe),
-  data = des,
+  data = des, subset = na_ind == 0,
   action = quote(svyglm(cil ~ gender_sfe + s_age_sfe + s_immbgr_sfe + s_comphome_sfe + s_excomp_1_sfe + s_excomp_2_sfe + s_excomp_3_sfe + s_excomp_4_sfe + s_degree_sfe + timedrop_sfe + perfdrop_sfe + nrr_sfe, design = des)))
 
 # A list with the models
@@ -376,7 +376,7 @@ mod.0.vif <- list(mod.0.vif, mod.1.vif, mod.2.vif, mod.3.vif, mod.4.vif) %>%
   bind_rows(.id = "Model")
 
 write_delim(x = mod.0.vif, file = "icils-2018-degree-vif.csv", delim = ";")
-rm(list = ls()[!ls() %in% c("students1", "des", paste("mod", 0:4, sep = "."), "tidy.melded", "glance.melded")])
+rm(list = ls()[!ls() %in% c("students1", "des", "tidy.melded", "glance.melded")])
 
 ######################################## STEP 4 ########################################
 ######## Models with PARENTAL OCCUPATION as a proxy for socioeconomic background #######

@@ -10,8 +10,4 @@ There are three main files in the repository
 2. `tidy-melded-functions.R` defines two functions: `tidy-melded` and `glance-melded` which are used to translate the results of the analyses into readable regression tables. They are slightly modified functions developed by [Andrew Heiss](https://www.andrewheiss.com/blog/2018/03/07/amelia-tidy-melding/). 
 3. `icils-2018-data-analysis.R` contains code to carry out the actual analysis.
 
-<<<<<<< HEAD
 The order in which these files are listed above reflects successive steps of the analysis. The code in the first script produces a data frame that is used in the actual analysis, so this script has to be executed first.
-=======
-The order in which these files are listed above reflects successive steps of the analysis. The code in the first script produces a data frame that is used in the actual analysis, so this script has to be executed first.
->>>>>>> 93302f9629ff1f434516d2610dfe36e9f02a9f5a

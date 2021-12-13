@@ -32,8 +32,6 @@ tidy.melded <- function(x, conf.int = FALSE, conf.level = 0.95) {
              conf.high = estimate + std.error * qt((1 - a), model_degrees_freedom))
   }
   
-  # tidy objects only have a data.frame class, not tbl_df or anything else
-  class(output) <- "data.frame"
   output
 }
 
@@ -51,7 +49,5 @@ glance.melded <- function(x) {
     summarise_at(.vars = vars(-contains("deviance")),
                  .funs = mean)
   
-  # glance objects only have a data.frame class, not tbl_df or anything else
-  class(output) <- "data.frame"
   output
 }
