@@ -9,18 +9,23 @@ library(fastDummies)
 ############################## PART 1: LOADING IN THE DATA #########################################
 ####################################################################################################
 
-# Names of the files with data from the student questionnaire
+# Data from ICILS 2018 are distributed in the form of separate files for each participating country and respondent type. With 14 participating countries and 3 respondent groups (i.e., students, teachers, headmasters), there is a total of 42 distinct files. The first step in the analysis consists in selecting the files containing data on students and binding them together in a single tibble.
+
+# Each individual dataset will be first saved as an element of a list. To that end, we first create a list of length 14, the number of countries participating in ICILS 2018. The elements of the list will be named, with their names corresponding to the names of the files in which the data are stored. The data come in the SPSS format, so the function haven::read_sav() will be used to make the import. Note also that the option `user_na` of that function is set to `TRUE`.
+
+# Assuming that all the ICILS 2018 files are in the working directory, we create a character vector with names of all the files.
 files <- list.files()
 
-# Data from the student questionnaire
+# An empty list to which the data will be saved
 students <- vector(mode = "list", length = 14)
 names(students) <- files[str_detect(string = files, pattern = "BSG")]
 
-# Reading in the students data files for each participating country. Note that option `user_na` is set to TRUE
+# Reading in the students data files for each participating country
 for (i in names(students)) {
   students[[i]] <- read_sav(i, user_na = TRUE)
 }
 
+# Binding the elements of the list together to arrive at a single tibble
 students <- students %>%
   bind_rows() %>%
   rename_with(.fn = tolower)
@@ -32,7 +37,8 @@ students <- students %>%
 # Extracting the variables representing responses to the test items and turning the data to a long format
 items <- students %>%
   select(cntry, idcntry, idschool, idstud, assessment, matches("c[12][bhsgraf][0-9]+[a-su-z]+")) %>%
-  pivot_longer(cols = matches("c[12][bhsgraf][0-9]+[a-z]+"), names_to = "item", values_to = "response")
+  pivot_longer(cols = matches("c[12][bhsgraf][0-9]+[a-z]+"), names_to = "item", 
+               values_to = "response")
 
 # Excluding items that are "missing by design"
 items <- items %>%
@@ -54,11 +60,8 @@ items <- items %>%
   filter(module == block) %>%
   select(-block)
 
-# Removing value labels as dplyr:arrange() doesn't seem to behave well when they are present. Arranging by sequence
-
 items <- items %>%
-  map_df(unclass) %>%
-  arrange(cntry, idschool, idstud, sequence)
+  arrange(idcntry, idschool, idstud, sequence)
 
 # Adding a variable indicating item number. Rescaling item number so that it is bounded between 0 and 1
 items <- items %>%
@@ -67,7 +70,7 @@ items <- items %>%
          item_no_r = 1/(n() - 1) * item_no - 1/(n() - 1)) %>%
   ungroup()
 
-# There are two types of codes for missing responses. Responses to questions that were presented to a student, but were not answered, are coded as 9. Responses to questions that were not reached by the student are coded as 7. Following Borghans and Schils (2013), I recode the latter as NA and the former as wrong answers (i.e., 0).
+# There are two types of codes for missing responses. Responses to questions that were presented to a student, but were not answered, are coded as 9. Responses to questions that were not reached by the student are coded as 7. Following Borghans and Schils (2018), I recode the latter as NA and the former as wrong answers (i.e., 0).
 
 items <- items %>%
   mutate(response = replace(response, (item == "c1s07zm") & (response %in% 1:22), 1)) %>%
@@ -93,7 +96,7 @@ items <- items %>%
 items <- items %>%
   mutate(respid = paste(cntry, idstud, sep = "-"))
 
-# Attempt at modeling. 
+# Modeling
 # Baseline model with crossed random effects of students and items
 
 m1 <- lmer(resp ~ item_no_r + (1|respid) + (1|item), data = items, control = lmerControl(optimizer = "Nelder_Mead"))
@@ -112,7 +115,7 @@ m1_vs_m2 %>%
 # Extracting random effects from the last model
 m2_ranef <- ranef(m2)
 
-# Creating a tibble with student ID and the student-specific slope from model m2. I call the latter variable perdrop as in "a drop in performance in the course of the test". The tibble is called "noncogs" as in "proxies for noncognitive skills"
+# Creating a tibble with student ID and the student-specific slope from model m2. I call the latter variable perfdrop as in "a drop in performance in the course of the test". The tibble is called "noncogs" as in "proxies for noncognitive skills"
 
 noncogs <- tibble(
   respid = rownames(m2_ranef$respid),
@@ -124,7 +127,7 @@ noncogs <- tibble(
 ################ PART 3: ITEM NUMBER AND THE TIME TAKEN TO COMPLETE THE TASK #######################
 ####################################################################################################
 
-# I will now look at the data about the time taken to complete the tasks as still another measure of effort exerted on the test. I will repeat the steps taken above to calculate the first measure of test effort
+# I will now look at the data about the time taken to complete the tasks as a still another measure of effort exerted on the test. I will repeat the steps taken above to calculate the first measure of test effort
 
 timing <- students %>%
   select(cntry, idcntry, idschool, idstud, assessment, matches("c[12][bhsgr][0-9]+t")) %>%
@@ -155,8 +158,7 @@ timing <- timing %>%
 timing <- timing %>%
   pivot_longer(cols = `1`:`2`, names_to = "sequence", values_to = "block") %>%
   filter(module == block) %>%
-  map_df(unclass) %>%
-  arrange(cntry, idschool, idstud, sequence) %>%
+  arrange(idcntry, idschool, idstud, sequence) %>%
   select(-block)
 
 # Adding the variable representing item number and item number rescaled (see above)
@@ -166,17 +168,20 @@ timing <- timing %>%
   mutate(item_no = 1:n(),
          item_no_r = 1/(n() - 1) * item_no - 1/(n() - 1))
 
-# OK, at this point I am turning to fitting mixed-effects models to the timing data to see if (a) there is a systematic drop in completion times and (b) if there is variation among students in regard to the drop, if any. First, however, we need to create a new respondent ID, just like we did before.
+# Defining a new respondent ID, just like before.
 
 timing <- timing %>%
   mutate(respid = paste(cntry, idstud, sep = "-"))
 
-# Baseline model
+# # Modeling
+# Baseline model with crossed random effects of students and items
+
 m3 <- lmer(time ~ item_no_r + (1|respid) + (1|item), data = timing, control = lmerControl(optimizer = "Nelder_Mead"))
 
+# A model with random slopes
 m4 <- lmer(time ~ item_no_r + (item_no_r|respid) + (1|item), data = timing, control = lmerControl(optimizer = "Nelder_Mead"))
 
-# I get a warning that the model is singular (although isSingular(m6) is FALSE). Indeed, the correlation between random intercepts and random slopes associated with respondents is 1. I therefore fit a simpler model with random slopes uncorrelated with the intercepts
+# I get a warning that the model is singular (although isSingular(m4) is FALSE). Indeed, the correlation between random intercepts and random slopes associated with respondents is 1. I therefore fit a simpler model with random slopes uncorrelated with the intercepts
 
 m4a <- lmer(time ~ item_no_r + (0 + item_no_r|respid) + (1|item), data = timing, control = lmerControl(optimizer = "Nelder_Mead"))
 
@@ -186,7 +191,7 @@ m3_vs_m4 <- anova(m3, m4a)
 m3_vs_m4 %>%
   tidy()
 
-# Extracting random effects from model m6a
+# Extracting random effects from model m4a
 ranef_m4a <- ranef(m4a)
 
 # Creating a tibble with student ID and the student-specific slope from model m4a. I call the latter variable timedrop as in "drop in response times in the later portion of the test". The tibble is then merged with the tibble noncogs created earlier
@@ -201,7 +206,7 @@ noncogs <- tibble(
 ################################ PART 4: ITEM NONRESPONSE ##########################################
 ####################################################################################################
 
-# Creating a tibble called nrr as in "Non-Response Rate". It contains, along with identification variables, a item response rate as a measure of conscientiousness
+# Creating a tibble called nrr as in "Non-Response Rate". It contains, along with identification variables, an item response rate as a measure of conscientiousness
 
 # Student-specific non-response rate
 
@@ -298,6 +303,8 @@ students1 <- students1 %>%
          respisb = nrr * s_nisb,
          respmig = nrr * s_immbgr)
 
+students1 <- mutate(students1, s_age = replace(s_age, s_age > 20, NA))
+
 ### Changing the factor variables into dummy variables
 
 students1 <- dummy_cols(.data = students1, select_columns = c("is2g15aa", "s_excomp"), remove_first_dummy = T)
@@ -311,7 +318,7 @@ students1 <- students1 %>%
                          starts_with("s_excomp_"), s_degree, high, s_hisei, s_nisb, s_comphome,
                          contains("time"), contains("perf"), nrr, contains("resp")),
             .funs = list(
-              sfe = ~. - weighted.mean(x = ., w = totwgts)
+              sfe = ~. - weighted.mean(x = ., w = totwgts, na.rm = TRUE)
             )) %>%
   ungroup()
 
