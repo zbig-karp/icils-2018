@@ -12,4 +12,4 @@ There are three **main files** in the repository
 
 The order in which these files are listed above reflects successive steps of the analysis. The code in the first script produces data frames (tibbles, actually) that are used in the actual analysis, so this script has to be executed first.
 
-Two additional files provide information about versions of the R packages used in the analysis.
+Two additional files, `session-info-data-preparation.log` and `session-info-data-analysis.log` provide information about versions of the R packages used in the analysis.
